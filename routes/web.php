@@ -13,9 +13,20 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::get('/', function () {
-    return view('welcome');
-});
 use App\Http\Controllers\TicketController;
+use Illuminate\Support\Facades\Artisan;
 
-Route::get('/generate', [TicketController::class, 'generateTickets']);
+Route::get('/foo', function () {
+    Artisan::call('storage:link');
+});
+Route::get('/login', [TicketController::class, 'login'])->name('login');
+Route::post('/login/do', [TicketController::class, 'loginDo'])->name('login.do');
+Route::middleware(['auth'])->group(function () {
+    Route::get('/', [TicketController::class, 'index'])->name('index');
+    Route::get('/scan', [TicketController::class, 'scan'])->name('scan');
+    Route::post('/scan/do', [TicketController::class, 'scanDo'])->name('scan.do');
+    // Route::get('/generate', [TicketController::class, 'generateTickets'])->name('generate.tiket');
+    Route::get('/generate', [TicketController::class, 'generate'])->name('generate');
+    Route::post('/generate/do', [TicketController::class, 'generateTickets'])->name('generate.do');
+    Route::get('/logout/do', [TicketController::class, 'logoutDo'])->name('logout.do');
+});

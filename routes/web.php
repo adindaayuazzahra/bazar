@@ -26,6 +26,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/scan', [TicketController::class, 'scan'])->name('scan');
     Route::post('/scan/do', [TicketController::class, 'scanDo'])->name('scan.do');
     // Route::get('/generate', [TicketController::class, 'generateTickets'])->name('generate.tiket');
+    Route::get('/kupon', [TicketController::class, 'generateKupon'])->name('generate.kupon');
     Route::get('/generate', [TicketController::class, 'generate'])->name('generate');
     Route::post('/generate/do', [TicketController::class, 'generateTickets'])->name('generate.do');
     Route::get('/logout/do', [TicketController::class, 'logoutDo'])->name('logout.do');

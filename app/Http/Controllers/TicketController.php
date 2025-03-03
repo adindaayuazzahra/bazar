@@ -113,14 +113,14 @@ class TicketController extends Controller
         ]);
 
         $namaGambar = time() . '_' . $request->gambar->getClientOriginalName();
-        $request->gambar->move(storage_path('app/public/template/'), $namaGambar);
+        $request->gambar->move(storage_path('app/public/template/tiket/'), $namaGambar);
 
         $pdf = new Fpdf('P', 'mm', 'A4');
 
         // Ukuran tiket dalam milimeter
         $ticketWidth = 150; // Lebar penuh kertas A4
         $ticketHeight = 70; // Satu perempat dari tinggi kertas A4
-        // $bottomMargin = 5;
+        $bottomMargin = 5;
         // $ticketWidth = 210; // Lebar penuh kertas A4
         // $ticketHeight = 297 / 3; // Satu perempat dari tinggi kertas A4
 
@@ -150,10 +150,10 @@ class TicketController extends Controller
             }
 
             // Tentukan offset vertikal berdasarkan nomor tiket
-            $yOffset = (($number - $request->awal) % 4) * $ticketHeight; // Gunakan modulus (%) untuk mendapatkan offset dalam satu halaman
+            // $yOffset = (($number - $request->awal) % 4) * $ticketHeight; // Gunakan modulus (%) untuk mendapatkan offset dalam satu halaman
 
-            // // Tentukan offset vertikal berdasarkan nomor tiket
-            // $yOffset = (($number - $request->awal) % 4) * ($ticketHeight + $bottomMargin);
+            // Tentukan offset vertikal berdasarkan nomor tiket
+            $yOffset = (($number - $request->awal) % 4) * ($ticketHeight + $bottomMargin);
 
 
             // Dapatkan string acak yang di-encode dengan Base64 URL-safe
@@ -168,7 +168,7 @@ class TicketController extends Controller
             $qrCode->saveToFile($tempImage);
 
             // Tambahkan gambar background tiket jika ada
-            $pdf->Image(storage_path('app/public/template/' . $namaGambar), 0, $yOffset, $ticketWidth, $ticketHeight);
+            $pdf->Image(storage_path('app/public/template/tiket/' . $namaGambar), 0, $yOffset, $ticketWidth, $ticketHeight);
 
             // Tambahkan QR Code ke tiket
             $pdf->Image($tempImage, 107.8, 15.5 + $yOffset, 35, 35);
@@ -182,50 +182,64 @@ class TicketController extends Controller
             unlink($tempImage);
         }
 
-        $pdf->Output('F', storage_path('app/public/tickets/ticketssss.pdf'));
-        // $pdf->Output('D', 'ticketssss.pdf');
+        // $pdf->Output('F', storage_path('app/public/tickets/ticketssss.pdf'));
+        $pdf->Output('D', 'Voucher FIX.pdf');
+    }
+
+    public function kupon()
+    {
+        return view('kupon');
     }
 
 
-    public function generateKupon()
+    public function generateKupon(Request $request)
     {
+
+        request()->validate([
+            'awal' => 'required',
+            'akhir' => 'required',
+            'gambar' => 'required|mimes:png,jpg',
+        ]);
+
+        $namaGambar = time() . '_' . $request->gambar->getClientOriginalName();
+        $request->gambar->move(storage_path('app/public/template/kupon/'), $namaGambar);
+
         $pdf = new Fpdf('P', 'mm', 'A4');
 
         // Ukuran tiket dalam milimeter
         $ticketWidth = 85.6; // Lebar penuh kertas A4
         $ticketHeight = 54; // Satu perempat dari tinggi kertas A4
+        $bottomMargin = 5;
+        $rightMargin = 5;
 
         $pdf->AddPage(); // Tambahkan halaman pertama di sini
 
-        for ($number = 2001; $number <= 4000; $number++) {
-
+        for ($number = $request->awal; $number <= $request->akhir; $number++) {
             $nomorTiket = $number;
-            // Jika bukan tiket pertama dan tiket adalah kelipatan dari 12, tambahkan halaman baru.
-            if ($number != 2001 && ($number - 2001) % 10 == 0) {
+            // Jika bukan tiket pertama dan tiket adalah kelipatan dari 10, tambahkan halaman baru.
+            if ($number != $request->awal && ($number - $request->awal) % 10 == 0) {
                 $pdf->AddPage();
             }
 
             // Tentukan offset vertikal dan horizontal berdasarkan nomor tiket
-            $xOffset = (($number - 2001) % 2) * $ticketWidth; // Offset horizontal
-            $yOffset = (floor(($number - 2001) / 2) % 5) * $ticketHeight; // Offset vertikal
+            $xOffset = (($number - $request->awal) % 2) * ($ticketWidth + $rightMargin); // Offset horizontal
+            $yOffset = (floor(($number - $request->awal) / 2) % 5) * ($ticketHeight + $bottomMargin); // Offset vertikal
 
             // Dapatkan string acak yang di-encode dengan Base64 URL-safe
             $randomData = $nomorTiket;
 
             // Tambahkan gambar background tiket jika ada
-            $pdf->Image(public_path('kupon.png'), $xOffset, $yOffset, $ticketWidth, $ticketHeight);
+            $pdf->Image(storage_path('app/public/template/kupon/' . $namaGambar), $xOffset, $yOffset, $ticketWidth, $ticketHeight);
 
             // Tampilkan data QR code di bawah gambar QR code
-            // $xText = $xOffset + 5; // Posisi x untuk teks
-            // $yText = $yOffset + 5.6;
             $xText = 72 + $xOffset; // Posisi x untuk teks (Anda bisa menyesuaikannya)
             $yText = 7 + $yOffset;
             $pdf->SetFont('Arial', 'B', 14);
             $pdf->SetTextColor(255, 255, 255);  // Warna teks putih
             $pdf->Text($xText, $yText, $randomData);
         }
-        $pdf->Output('F', storage_path('app/public/tickets/Kupon.pdf'));
-        // $pdf->Output('D', 'Kupon Fix.pdf');
+        // $pdf->Output('F', storage_path('app/public/tickets/Kupon.pdf'));
+        $pdf->Output('D', 'Kupon Fix.pdf');
     }
 
 
@@ -311,7 +325,7 @@ class TicketController extends Controller
             unlink($tempImage);
         }
 
-        $pdf->Output('F', storage_path('app/public/tickets/ticketssss.pdf'));
+        $pdf->Output('F', storage_path('app/public/tickets/gelangss.pdf'));
         // $pdf->Output('D', 'ticketssss.pdf');
     }
 }
